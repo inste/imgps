@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 /***************************************************************************
- *   Copyright (C) 2008 by Ponetayev Ilya aka INSTE                        *
+ *   Copyright (C) 2008 - 2010 by Ponetayev Ilya aka INSTE                        *
  *   instenet@gmail.com                                                         *
  *   ICQ : 473409594, Jabber/XMPP : inste@jabber.org                       * 
  *                                                                         *
@@ -43,8 +43,8 @@ function file_getlastslash($str)
   global $slash; 
   if (($ps = strpos($str, $slash)) == FALSE)
     return 0;
-  while (strpos($str, $slash, $ps + 1) != FALSE)
-   $ps = strpos($str, $slash, $ps + 1);
+  while (($pq = strpos($str, $slash, $ps + 1)) != FALSE)
+	$ps = $pq;
   return $ps; 
 };
 
@@ -85,14 +85,15 @@ function imageconvert($infilename, $outfilename, $outformat, $dh, $dw, $quality)
  global $isReadGIF;
  global $OutInter;
  $infmt = exif_imagetype($infilename);
- if ($infmt == IMAGETYPE_JPEG) {
-  $image = imagecreatefromjpeg($infilename);
-  $IF = "JPEG";
- };
- if ($infmt == IMAGETYPE_PNG) {
-  $image = imagecreatefrompng($infilename);
-  $IF = "PNG";
- };
+ switch ($infmt) {
+	case	IMAGETYPE_JPEG:	  $image = imagecreatefromjpeg($infilename);
+	    					  $IF = "JPEG";
+							  break;
+	case	IMAGETYPE_PNG:	  $image = imagecreatefrompng($infilename);
+							  $IF = "PNG";
+							  break;
+	default:				  break;
+ }
  if (($infmt == IMAGETYPE_GIF) && $isReadGIF) {
   $image = imagecreatefromgif($infilename);
   $IF = "GIF";
@@ -113,37 +114,35 @@ if ($image != FALSE) {
  if ($dh == -1) // Autocomputing size
    $dh = (int)$dw*($sh/$sw);
  $oimage = imagecreatetruecolor($dw, $dh);
- if ($outformat == -1) // Autocomputing format
+ if ($outformat == -1) // Autocompute format
   $outformat = $infmt;
  if ($outformat == IMAGETYPE_GIF) {
     $OF = "GIF";
   if (!$isWriteGIF)
     $outformat = IMAGETYPE_JPEG;
  };
- if ($outformat == IMAGETYPE_JPEG)
-  $OF = "JPEG";
- if ($outformat == IMAGETYPE_PNG)
-  $OF = "PNG";
- if ($outformat == IMAGETYPE_GD) 
-  $OF = "GD";
- if ($outformat == IMAGETYPE_GD2)
-  $OF = "GD2";
+ 
+ switch ($outformat) {
+	case IMAGETYPE_JPEG:	$OF = "JPEG"; break;
+	case IMAGETYPE_PNG:		$OF = "PNG"; break;
+	case IMAGETYPE_GD:		$OF = "GD"; break;
+	case IMAGETYPE_GD2:		$OF = "GD2"; break;
+	default:				break;
+ }
  if (($OutInter) AND ($outformat != IMAGETYPE_GD2) AND ($outformat != IMAGETYPE_GD))
   $OF = $OF."(i)";
  print("-> Converting '".file_pathtoname($infilename)."' (".$IF." -> ".$OF."; ".$sw."x".$sh." -> ".$dw."x".$dh.")...");
  imagecopyresampled($oimage, $image, 0, 0, 0, 0, $dw, $dh, $sw, $sh);
  if (($OutInter) AND ($outformat != IMAGETYPE_GD2) AND ($outformat != IMAGETYPE_GD))
   imageinterlace($oimage);
- if ($outformat == IMAGETYPE_JPEG)
-  imagejpeg($oimage, $outfilename, $quality);
- if ($outformat == IMAGETYPE_PNG)
-  imagepng($oimage, $outfilename);
- if ($outformat == IMAGETYPE_GIF)
-  imagegif($oimage, $outfilename);
- if ($outformat == IMAGETYPE_GD)
-  imagegd($oimage, $outfilename);
- if ($outformat == IMAGETYPE_GD2)
-  imagegd2($oimage, $outfilename);
+ switch ($outformat) {
+	case IMAGETYPE_JPEG:		imagejpeg($oimage, $outfilename, $quality); break;
+	case IMAGETYPE_PNG:			imagepng($oimage, $outfilename); break;
+	case IMAGETYPE_GIF:			imagegif($oimage, $outfilename); break;
+	case IMAGETYPE_GD:			imagegd($oimage, $outfilename); break;
+	case IMAGETYPE_GD2:			imagegd2($oimage, $outfilename); break;
+	default:					break;
+ }
  print("  DONE!".chr(10));
  return 1;
 } else
@@ -181,16 +180,14 @@ global $PREFIX;
 if (file_exists($readname)) {
      $name = $readname;
      if ($OUTFMT != -1) {
-       if ($OUTFMT == IMAGETYPE_JPEG)
-         $newext = ".jpg";
-       if ($OUTFMT == IMAGETYPE_PNG)
-         $newext = ".png";
-       if ($OUTFMT == IMAGETYPE_GIF)
-         $newext = ".gif";
-       if ($OUTFMT == IMAGETYPE_GD)
-         $newext = ".gd";
-       if ($OUTFMT == IMAGETYPE_GD2)
-         $newext = ".gd2";
+		switch ($OUTFMT) {
+			case IMAGETYPE_JPEG:	$newext = ".jpg"; break;
+			case IMAGETYPE_PNG:		$newext = ".png"; break;
+			case IMAGETYPE_GIF: 	$newext = ".gif"; break;
+			case IMAGETYPE_GD:		$newext = ".gd"; break;
+			case IMAGETYPE_GD2:		$newext = ".gd2"; break;
+			default:		break;
+		}
          $old = file_fulltoshort($name);
          if ($name != $old.$newext)
            $newname = $old.$newext;
@@ -332,7 +329,7 @@ if ($firstcmd == "-p")
  $OUTFMT = IMAGETYPE_PNG;
 if ($firstcmd == "-g")
    if (!$isWriteGIF)
-     die("-> You can't create GIF files, your PHP/GD2 don't support it!".chr(10));
+     die("-> You can't create GIF files, your PHP/GD2 doesn't support it!".chr(10));
    else
       $OUTFMT = IMAGETYPE_GIF; 
 if ($firstcmd == "-gd")

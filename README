@@ -1,6 +1,8 @@
-Images processing tool, v 0.2
+Images processing tool, v 0.3
 
 It converts images between different formats with resizing.
 Works from commandline.
 
+Published under GNU GPL v2.
 
+(c) Ponetayev Ilya, 2008 - 2010
